@@ -17,7 +17,7 @@ library("tidyverse")
 library("cowplot")
 library("ggcharts")
 
-DonnéesPersonelles <- read.csv(file="D:/itba/BaseDatosII/Projet/DonnéesPersonnelles.csv")
+DonnéesPersonelles <- read.csv(file="D:/itba/Visualisation/DonnéesPersonnelles.csv")
 
 DonnéesPersonelles<-transform(DonnéesPersonelles, Température= as.numeric(Température))
 DonnéesPersonelles<-transform(DonnéesPersonelles, Jour= as.Date(Jour, format = "%d/%m/%y"))
