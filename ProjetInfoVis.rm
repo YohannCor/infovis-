@@ -1,0 +1,168 @@
+---
+title: "Projet-InfoVis"
+author: "Yohann Corfdir"
+date: '2022-09-10'
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("gridExtra")
+library("ggplot2")
+library("dplyr")
+library("tidyverse")
+library("cowplot")
+library("ggcharts")
+
+DonnéesPersonelles <- read.csv(file="D:/itba/BaseDatosII/Projet/DonnéesPersonnelles.csv")
+
+DonnéesPersonelles<-transform(DonnéesPersonelles, Température= as.numeric(Température))
+DonnéesPersonelles<-transform(DonnéesPersonelles, Jour= as.Date(Jour, format = "%d/%m/%y"))
+
+plot1<- ggplot(DonnéesPersonelles, aes(x=Jour, y=Kilométres, group=1))+geom_line(aes(color=1))+scale_x_date(date_labels = "%B/%Y")+labs(title="Kilometro recorrido entre Enero y Agosto de 2022", x="Dia", y = "Kilometro")+ theme(legend.position='none')
+
+MoyKilJ <- print(aggregate(x= DonnéesPersonelles$Kilométres,     
+          
+          # Specify group indicator
+          by = list(DonnéesPersonelles$Jour.1),      
+          
+          # Specify function (i.e. mean)
+          FUN = mean))
+
+
+numéro <- c(7,4,1,2,3,6,5)
+MoyKilJ<-cbind(MoyKilJ,numéro)
+MoyKilJ <- MoyKilJ[order(numéro),]
+MoyKilJ <- transform(MoyKilJ, numéro = as.character(numéro))
+
+plot2<- ggplot(MoyKilJ, aes(x=(numéro), y=x, fill=numéro))+geom_col()+labs(title="Kilometro recorrido por dia", x="Dia", y = "Kilometro")+ scale_x_discrete(labels=c("1" = "Lunes", "2" = "Martes", "3" = "Miercoles","4"="Jueves","5"="Viernes","6"="Sabado","7"="Domingo"))+ theme(legend.position='none')
+
+
+MoyKilPays <- print(aggregate(x= DonnéesPersonelles$Kilométres,     
+                           
+                           # Specify group indicator
+                           by = list(DonnéesPersonelles$Pays),      
+                           
+                           # Specify function (i.e. mean)
+                           FUN = mean))
+
+plot3 <- ggplot(MoyKilPays, aes(x=(Group.1), y=x, fill=Group.1))+geom_col()+labs(title="Kilometro recorrido por pais", x="pais", y = "Kilometro")+ theme(legend.position='none')
+
+
+plot4<- ggplot()+geom_line(data=DonnéesPersonelles, aes(x=Jour, y=Température, color=Pays))+geom_col(data=DonnéesPersonelles, aes(x=Jour, y=Kilométres))+geom_smooth(data=DonnéesPersonelles, aes(x=Jour, y=Kilométres, color=Pays))+labs(title="Evolución del número de kilómetros y la temperatura", x="Dia") +theme(axis.title.y = element_blank())+ theme(legend.position='none')
+
+
+MoyKilActivité <- print(aggregate(x= DonnéesPersonelles$Kilométres,     
+                              
+                              # Specify group indicator
+                              by = list(DonnéesPersonelles$Activité),      
+                              
+                              # Specify function (i.e. mean)
+                              FUN = mean))
+                 
+plot6 <-ggplot(MoyKilActivité, aes(x=(Group.1), y=x, fill=Group.1))+geom_col()+labs(title="Kilometro recorrido durante las vacaciones y las clases", x="Activité", y = "Kilometro", )+ scale_x_discrete(labels=c("C" = "Clases", "V" = "Vacaciones"))+ theme(legend.position='none')
+
+KilFraArg <- print (filter(DonnéesPersonelles, Activité=="C"))
+MoyKilFraArfC <- print(aggregate(x= KilFraArg$Kilométres,     
+                                  
+                                  # Specify group indicator
+                                  by = list(KilFraArg$Pays),      
+                                  
+                                  # Specify function (i.e. mean)
+                                  FUN = mean)) 
+
+
+
+plot5 <- ggplot(MoyKilFraArfC, aes(x=x, y=Group.1, fill=x))+geom_col()+ theme(legend.position='none')+labs(title="Kilometro recorrido durante las clases en Francia y Argentina", x="Activité", y = "Kilometro")
+
+
+```
+
+# Proyecto InfoVis Datos Personales 
+
+## Tras los pasos de Yohann
+
+Este proyecto tiene como objetivo visualizar la evolución de mis pasos diarios desde el 01 de enero de 2022
+
+Nos interesarán diferentes factores como el clima, la actividad (Escuela, Vacaciones) o la diferencia de pasos dados en Francia y en Argentina
+
+La base de datos incluye 242 observaciones y 6 columnas que son:
+
+1.  La fecha
+
+2. Kilómetros recorridos
+
+3. La actividad (Vacaciones, cursos)
+
+4. El nombre del día (lunes, martes,...)
+
+5. El país (Francia, Argentina)
+
+6. La temperatura exterior
+
+
+## Visión general 
+
+El objetivo de este primer gráfico es adentrarse en el estudio y poder a través de este primer gráfico realizar otras visualizaciones. En primer lugar, visualizaremos la evolución del número de pasos durante el año.
+
+
+```{r simplePlot, echo=FALSE}
+plot1
+```
+
+Podemos ver que los pasos parecen ser muy alternos. A ver si el día incide en el número de pasos que se dan y si hay días con un número de pasos muy alto y por el contrario días con un número de pasos muy bajo.
+
+## Pasos por día 
+```{r simplePlot2, echo=FALSE}
+plot2
+```
+
+Como vemos, el día no parece ser un factor influyente en el número de pasos dados. Los pasos parecen constantes independientemente del día de la semana.
+
+Vemos, sin embargo, que el número de pasos parece aumentar a lo largo del año. El clima puede afectar potencialmente este número.
+
+
+## Pasos en función de la temperatura
+
+```{r simplePlot3, echo=FALSE}
+plot4
+```
+
+El número de pasos aumenta un poco hacia fines de mayo, sin embargo, el resultado no es obvio y solo hay un aumento al final del gráfico. Los pasos tampoco parecen estar correlacionados con la temperatura exterior. La temperatura más agradable en verano anima a caminar más al aire libre, pero esto no parece tener un impacto significativo.
+
+Pero entonces podemos decirnos que los pasos aumentan pueden ser en vacaciones, cuando se puede dedicar todo el día a las actividades, o por el contrario se reducen drásticamente, sin los desplazamientos entre casa y escuela.
+
+## Pasos en función de la actividad
+
+```{r simplePlot4, echo=FALSE}
+plot6
+```
+
+La actividad parece tener un ligero impacto en el número de pasos. Las vacaciones parecen ser un período en el que camino menos que los días de clase sentado durante 8 horas en una silla..
+El gráfico frente a la temperatura, sin embargo, parece mostrar otro factor en el número de pasos dados. Parece que el número de pasos aumenta enormemente en la segunda parte del gráfico, sobre todo a partir de finales de julio. Los primeros días de agosto corresponden a mi llegada a la Argentina, por lo que podemos preguntarnos si el país es un factor influyente en la cantidad de pasos que se dan.
+
+## Pasos en función del pais 
+```{r simplePlot5, echo=FALSE}
+plot3
+```
+
+La diferencia es mucho más evidente, el número de pasos realizados en Argentina es mucho mayor que en Francia. Esto puede explicarse en particular por las visitas realizadas para descubrir el país. Para verificar si es probable que esto continúe, verifiquemos si mi número de pasos dados en los días escolares también es muy diferente en comparación con Francia o si la diferencia es leve.
+
+## Pasos en función del pais durante las dias de classe
+```{r simplePlot6, echo=FALSE}
+plot5
+```
+
+Finalmente, el número de pasos dados en días escolares en Argentina sigue siendo muy superior al número de pasos dados en días escolares en Francia.
+
+## Conclusión
+
+Este estudio ayudó a comprender mis hábitos diarios de caminar.
+Mis conteos diarios de pasos son prácticamente los mismos independientemente del día de la semana. Además, las vacaciones tienen un efecto negativo pero insignificante en mi número de pasos.Habríamos pensado que el clima también influyó en mi número de pasos. Sin embargo, otro criterio parece haber tenido más impacto en mi número de pasos.
+Cuando llegué a Argentina, mi número de pasos aumentó considerablemente. Esto se explica en particular por las diversas visitas realizadas en la ciudad pero también por el cambio de ciertos hábitos. El viaje entre mi casa y la escuela casi siempre se hace a pie, a diferencia de antes cuando usaba un auto. Además, todas mis compras también las hacía a pie, aumentando el número de pasos.
+
+
+
